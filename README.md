@@ -1,7 +1,7 @@
 # Heartbeat-Anomaly-Detection-from-ECG-Signals-in-R
 
 ## Problem Statement:
-Performing statistical and exploratory data analysis on ECG data containing signals of single heartbeats and deploying multivariate predictive models to predict and classify heart arrhythmias, that is, whether the heartbeat is normal or abnormal with the highest accuracy.
+Performing statistical and exploratory data analysis on ECG data containing signals of single heartbeats and deploying multivariate predictive models such as Logistic Regression, KNN, Decision Tree, Lasso Regression, Ridge Regression and Random Forests to predict and classify heart arrhythmias, that is, whether the heartbeat is normal or abnormal with the highest accuracy.
 
 ## Introduction:
 The heart contracts in a rhythmical manner to pump blood throughout the body with contractions beginning at the atrial sine node and propagates through the rest of the muscle. This electrical signal propagation has a pattern and because of this, electrical currents are generated on the surface of the body causing variations in the electrical potential of the skin surface. These signals can be captured with electrodes and appropriate equipment and are called ECG signals.
