@@ -14,3 +14,24 @@ Thus, an ECG signal or an electrocardiogram measures the electrical activity of 
 impulse value at each consecutive second.
 3. The diagnostic response vector Y_train is a categorical vector depicting 0 for normal heartbeat
 and 1 for abnormal heartbeat.
+
+## Statistical Analysis:
+### 1. Data Exploration : Loading and describing the data
+● The dataset X_train has 12552 observations and 187 variables. The vector y_train has 12552 rows of categorical values of 0 and 1 for normal and abnormal heartbeats. This forms our training data to train the different models on.
+● The dataset X_test has 2000 observations and 187 variables but there is no y_test. This is unlabelled data and the model’s accuracy can be checked on this unseen dataset.
+● table(y_train) function is used to check the number of observations in each class.
+  
+  ○ There are 3046 observations in 0/normal class
+  ○ There are 9506 observations in 1/abnormal class
+● colSums(is.na(X_train)) function is used to check for any missing values in any of the
+variables. There were no missing values in any of the columns.
+
+### 2. Data Visualization:
+Plotting the distribution of the observations in the two classes - normal and abnormal using Barplot. There are 3 times more observations in the abnormal class than normal class.
+
+Plotting the heartbeat with time for each of the classes by using the Unlist function.
+
+The normal heartbeat has less variability than the abnormal heartbeat and the curve is smoother. The abnormal heartbeat also has higher peaks, which means it goes beyond the normal range in P wave, PR interval and QRS duration.
+
+### 3. Data Processing and Transformation
+Since the data in all the variables are in the same scale, normalization isn’t required. The testing dataset provided is unlabelled. Therefore, to check the accuracy of the trained models, it is important to split the given training dataset into train and test sets of fixed size. Setting 11000 rows in the training dataset and the rest in the test dataset to check for model performance.
