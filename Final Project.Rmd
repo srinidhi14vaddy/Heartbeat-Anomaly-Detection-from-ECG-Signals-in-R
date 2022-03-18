@@ -1,0 +1,371 @@
+---
+title: "Final Project"
+author: "Srinidhi"
+date: "3/9/2022"
+output: html_document
+---
+
+```{r}
+#load the libraries
+library(GGally)
+library(MASS)
+library(ggplot2)
+library(dplyr)
+library(class)
+library(dummies)
+library(tidyverse)
+```
+
+
+```{r}
+load('ptb.Rdata')
+head(X_train)
+dim(X_train)
+```
+
+
+```{r}
+#to check if there is any missing data 
+colSums(is.na(X_train))
+```
+
+
+
+```{r}
+length(y_train)
+dim(X_test)
+```
+
+
+```{r}
+table(y_train)
+```
+
+```{r}
+df <-  X_train
+df$y <-  y_train
+table(df$y)
+head(df)
+```
+
+
+```{r}
+# Simple Bar Plot 
+counts <- table(df$y)
+barplot(counts, main="Heartbeat Classification", 
+   xlab="Normal VS Abnormal", col = "red")
+```
+
+
+
+
+```{r}
+y_train[11250]
+y_train[3024]
+```
+
+
+```{r}
+x_seq <- seq(1,187)
+y_seq <- unlist(df[11250,1:187], use.names = FALSE)
+new <-  data.frame(X = x_seq, Y= y_seq)
+```
+
+```{r}
+ggplot(new, aes(x= X, y=Y)) +
+  geom_line() + ggtitle("Plot of Abnormal Heartbeat") +
+  xlab("Time") + ylab("Value at Each second")
+```
+
+
+```{r}
+x_seq <- seq(1,187)
+y_seq <- unlist(df[3024,1:187], use.names = FALSE)
+new <-  data.frame(X = x_seq, Y= y_seq)
+```
+
+```{r}
+ggplot(new, aes(x= X, y=Y)) +
+  geom_line() + ggtitle("Plot of Normal Heartbeat") +
+  xlab("Time") + ylab("Value at Each second")
+```
+
+
+```{r}
+#setting aside 400 samples
+#setting seed to fix the dataset
+set.seed(0)
+
+#sampling 1000 ids
+train_id = sample(nrow(df), 11000)
+
+
+train_df = df[train_id, ]
+test_df  = df[-train_id,]
+dim(train_df)
+```
+
+```{r}
+train_df
+```
+
+```{r}
+#fitting the logistic regression model to the data 
+glm.model = glm(formula = y~., family = binomial(link = "logit"), data = train_df)
+
+#will print the categorical value assigned to each class
+contrasts(train_df$y)
+
+
+#summary of the model - coefficients, t value, p value
+summary(glm.model)
+```
+
+
+```{r}
+glm.prob.train = predict(glm.model, type = "response")
+glm.label.train = rep(0, nrow(train_df))
+glm.label.train[glm.prob.train > .5] = 1
+
+# Confusion matrix
+print("Training data - confusion matrix")
+tt.glm.train = table(True = train_df$y, Predicted = glm.label.train)
+tt.glm.train
+
+# Model Accuracy
+print("Training data - Model accuracy")
+mean(glm.label.train == train_df$y)
+
+glm.prob.test = predict(glm.model, type = "response", newdata = test_df)
+glm.label.test = rep(0, nrow(test_df))
+glm.label.test[glm.prob.test > .5] = 1
+
+# Confusion matrix
+print("Testing data - confusion matrix")
+tt.glm.test = table(True = test_df$y, Predicted = glm.label.test)
+tt.glm.test
+
+# Model Accuracy
+print("Training data - Model accuracy")
+mean(glm.label.test == test_df$y)
+```
+
+
+
+```{r}
+library(rpart)
+fit <- rpart(y~., data = train_df, method = 'class')
+fit
+```
+
+
+```{r}
+predict_train <-predict(fit, train_df, type = 'class')
+
+# Confusion matrix
+print("Training data - confusion matrix")
+tt.glm.train = table(True = train_df$y, Predicted = predict_train)
+tt.glm.train
+
+# Model Accuracy
+print("Training data - Model accuracy")
+mean(predict_train == train_df$y)
+
+predict_test <-predict(fit, test_df, type = 'class')
+
+# Confusion matrix
+print("Testing data - confusion matrix")
+tt.glm.test = table(True = test_df$y, Predicted =predict_test)
+tt.glm.test
+
+# Model Accuracy
+print("Training data - Model accuracy")
+mean(predict_test == test_df$y)
+```
+
+```{r}
+control <- rpart.control(minsplit = 4,
+    minbucket = round(5 / 3),
+    maxdepth = 7,
+    cp = 0)
+```
+
+
+```{r}
+fit_1 <- rpart(y~., data = train_df, method = 'class', control = control)
+fit_1
+```
+
+
+```{r}
+predict_train_1 <-predict(fit_1, train_df, type = 'class')
+
+# Confusion matrix
+print("Training data - confusion matrix")
+tt.glm.train = table(True = train_df$y, Predicted = predict_train_1)
+tt.glm.train
+
+# Model Accuracy
+print("Training data - Model accuracy")
+mean(predict_train_1 == train_df$y)
+
+predict_test_1 <-predict(fit_1, test_df, type = 'class')
+
+# Confusion matrix
+print("Testing data - confusion matrix")
+tt.glm.test = table(True = test_df$y, Predicted =predict_test_1)
+tt.glm.test
+
+# Model Accuracy
+print("Training data - Model accuracy")
+mean(predict_test_1 == test_df$y)
+```
+
+
+#### Lasso
+```{r}
+x_train = model.matrix(y~ -1+., data = train_df)
+y_train = train_df$y
+
+x_test = model.matrix(y~ -1+., data = test_df)
+y_test = test_df$y
+
+x_train[0:20]
+```
+
+```{r}
+library(glmnet)
+grid = 10^seq(5,-18,length=100)
+lasso.mod = glmnet(x_train, y_train, alpha=1, lambda = grid,thresh =1e-8, family = "binomial")
+```
+
+
+```{r}
+plot(lasso.mod)
+```
+
+
+```{r warning=FALSE}
+cv.out = cv.glmnet(x_train, y_train, alpha=1, lambda = grid, family = 'binomial',type.measure = "class"  )
+plot(cv.out)
+bestlam = cv.out$lambda.min #Alternatively, cv.out$lambda.1se
+bestlam
+```
+
+
+```{r}
+lasso.mod.best = glmnet(x_train, y_train, alpha=1, lambda = bestlam ,thresh =1e-8, family = "binomial")
+coef(lasso.mod.best)
+```
+
+
+
+
+```{r}
+y_train <- as.factor(y_train)
+y_test <- as.factor(y_test)
+lasso.pred.train= predict(lasso.mod.best, s=bestlam, newx=x_train, type = "response")
+
+print("Training Data Accuracy")
+lasso.label.train = rep(0, nrow(x_train))
+lasso.label.train[lasso.pred.train > .5] = 1
+mean(lasso.label.train == y_train)
+
+lasso.pred.test = predict(lasso.mod.best, s=bestlam, newx=x_test, type = "response")
+
+print("Testing Data Accuracy")
+lasso.label.test = rep(0 , nrow(x_test))
+lasso.label.test[lasso.pred.test > .5] = 1
+mean(lasso.label.test == y_test)
+
+tt.lasso.train = table(True = y_train, Predicted = lasso.label.train)
+tt.lasso.test = table(True = y_test, Predicted = lasso.label.test)
+
+("Training Confusion Matrix")
+tt.lasso.train
+
+("Testing Confusion Matrix")
+tt.lasso.test
+```
+
+
+#RIDGE
+```{r}
+library(glmnet)
+grid = 10^seq(5,-18,length=100)
+ridge.mod = glmnet(x_train, y_train, alpha=0, lambda = grid,thresh =1e-8, family = "binomial")
+```
+
+```{r}
+plot(ridge.mod)
+```
+
+```{r warning=FALSE}
+cv.out = cv.glmnet(x_train, y_train, alpha=0, lambda = grid, family = 'binomial',type.measure = "class"  )
+plot(cv.out)
+bestlam = cv.out$lambda.min #Alternatively, cv.out$lambda.1se
+bestlam
+```
+
+
+
+```{r}
+ridge.mod.best = glmnet(x_train, y_train, alpha=0, lambda = bestlam ,thresh =1e-8, family = "binomial")
+coef(ridge.mod.best)
+```
+
+
+```{r}
+y_train <- as.factor(y_train)
+y_test <- as.factor(y_test)
+ridge.pred.train= predict(ridge.mod.best, s=bestlam, newx=x_train, type = "response")
+
+print("Training Data Accuracy")
+ridge.label.train = rep(0, nrow(x_train))
+ridge.label.train[ridge.pred.train > .5] = 1
+mean(ridge.label.train == y_train)
+
+ridge.pred.test = predict(ridge.mod.best, s=bestlam, newx=x_test, type = "response")
+
+print("Testing Data Accuracy")
+ridge.label.test = rep(0 , nrow(x_test))
+ridge.label.test[ridge.pred.test > .5] = 1
+mean(ridge.label.test == y_test)
+
+tt.ridge.train = table(True = y_train, Predicted = ridge.label.train)
+tt.ridge.test = table(True = y_test, Predicted = ridge.label.test)
+
+print("Training Confusion Matrix")
+tt.ridge.train
+
+print("Test Confusion Matrix")
+tt.ridge.test
+```
+
+
+### RANDOM FOREST
+```{r}
+library(randomForest)
+set.seed(1)
+bag.med<-randomForest(y~.,data=train_df, importance=TRUE)
+bag.med
+
+
+yhat<-predict(bag.med,newdata=test_df, type = "class")
+
+
+print('Testing Data Accuracy')
+# Prediction Accuracy
+mean(yhat == test_df$y)
+
+```
+
+```{r}
+bag.med
+```
+
+
+
+
+
+
